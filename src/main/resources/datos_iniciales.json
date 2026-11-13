@@ -1,0 +1,25 @@
+{
+  "unidades": [
+    {"placa": "AMB-101", "tipo": "AMBULANCIA", "estado": "DISPONIBLE", "idInterseccion": 3},
+    {"placa": "AMB-102", "tipo": "AMBULANCIA", "estado": "DISPONIBLE", "idInterseccion": 12},
+    {"placa": "BOM-201", "tipo": "BOMBEROS", "estado": "DISPONIBLE", "idInterseccion": 7},
+    {"placa": "POL-301", "tipo": "POLICIA", "estado": "DISPONIBLE", "idInterseccion": 15}
+  ],
+  "incidentes": [
+    {"id": 1, "tipo": "ACCIDENTE", "descripcion": "Choque en autopista", "prioridad": 2, "fechaHora": "2026-11-10T08:15:00", "estado": "ACTIVO", "idInterseccion": 4},
+    {"id": 2, "tipo": "INCENDIO", "descripcion": "Incendio en bodega", "prioridad": 1, "fechaHora": "2026-11-10T08:20:00", "estado": "ACTIVO", "idInterseccion": 9},
+    {"id": 3, "tipo": "ROBO", "descripcion": "Robo en comercio", "prioridad": 4, "fechaHora": "2026-11-10T08:22:00", "estado": "ACTIVO", "idInterseccion": 2},
+    {"id": 4, "tipo": "MEDICA", "descripcion": "Paro cardíaco", "prioridad": 1, "fechaHora": "2026-11-10T08:25:00", "estado": "ACTIVO", "idInterseccion": 11},
+    {"id": 5, "tipo": "RUIDO", "descripcion": "Ruido excesivo", "prioridad": 5, "fechaHora": "2026-11-10T08:30:00", "estado": "ACTIVO", "idInterseccion": 6},
+    {"id": 6, "tipo": "MEDICA", "descripcion": "Persona inconsciente", "prioridad": 2, "fechaHora": "2026-11-10T08:31:00", "estado": "ACTIVO", "idInterseccion": 14},
+    {"id": 7, "tipo": "ACCIDENTE", "descripcion": "Colisión leve", "prioridad": 3, "fechaHora": "2026-11-10T08:35:00", "estado": "ACTIVO", "idInterseccion": 8},
+    {"id": 8, "tipo": "INCENDIO", "descripcion": "Quema de basura", "prioridad": 4, "fechaHora": "2026-11-10T08:40:00", "estado": "ACTIVO", "idInterseccion": 1},
+    {"id": 9, "tipo": "ROBO", "descripcion": "Asalto a peatón", "prioridad": 3, "fechaHora": "2026-11-10T08:42:00", "estado": "ACTIVO", "idInterseccion": 13},
+    {"id": 10, "tipo": "MEDICA", "descripcion": "Caída de adulto mayor", "prioridad": 3, "fechaHora": "2026-11-10T08:45:00", "estado": "ACTIVO", "idInterseccion": 5}
+  ],
+  "llamadas": [
+    {"id": 1, "telefono": "8888-1111", "horaRecepcion": "2026-11-10T08:50:00", "ubicacionReferida": "Frente al parque central"},
+    {"id": 2, "telefono": "8888-2222", "horaRecepcion": "2026-11-10T08:51:00", "ubicacionReferida": "Avenida segunda"},
+    {"id": 3, "telefono": "8888-3333", "horaRecepcion": "2026-11-10T08:53:00", "ubicacionReferida": "Barrio Escalante"}
+  ]
+}
