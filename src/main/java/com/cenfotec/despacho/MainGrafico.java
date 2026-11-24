@@ -26,7 +26,6 @@ public class MainGrafico {
             return;
         }
 
-        SwingUtilities.invokeLater(() ->
-                new VentanaPrincipal(resultado.servicio(), resultado.origen()).setVisible(true));
+        SwingUtilities.invokeLater(() -> new VentanaPrincipal(resultado).setVisible(true));
     }
 }

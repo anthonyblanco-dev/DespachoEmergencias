@@ -14,8 +14,16 @@ public class CargadorNube {
     public static final String COL_INCIDENTES = "despacho_incidentes";
     public static final String COL_LLAMADAS = "despacho_llamadas";
 
-    private final ClienteApi api = new ClienteApi();
+    private final AlmacenNube api;
     private final Gson gson = new Gson();
+
+    public CargadorNube() {
+        this(new ClienteApi());
+    }
+
+    public CargadorNube(AlmacenNube almacen) {
+        this.api = almacen;
+    }
 
     /** Sube los datos base a la nube solo en las colecciones que estén vacías. Devuelve cuántos subió. */
     public int sembrarSiVacio(DatosIniciales base) throws IOException, InterruptedException {

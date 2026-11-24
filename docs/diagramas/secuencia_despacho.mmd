@@ -1,0 +1,29 @@
+sequenceDiagram
+  actor Op as Operador
+  participant UI as Interfaz
+  participant S as ServicioDespacho
+  participant B as BusMensajes
+  participant A as Despacho automático
+  participant P as Persistencia
+  participant N as Nube (MongoDB)
+
+  Op->>UI: Atender llamada (tipo, prioridad, intersección)
+  UI->>S: atenderSiguienteLlamada()
+  S->>S: desencolar llamada (cola circular)
+  S->>B: publicar(LlamadaAtendida)
+  S->>S: insertar en Rojo-Negro y tabla hash
+  S->>B: publicar(IncidenteCreado)
+  S-->>UI: incidente (responde sin esperar a nadie)
+
+  par cada componente en su hilo
+    B->>P: LlamadaAtendida, IncidenteCreado
+    P->>N: actualizar llamada, insertar incidente
+  and
+    B->>A: IncidenteCreado
+    A->>S: despachar(id)
+    S->>S: Dijkstra: unidad libre más cercana
+    S->>B: publicar(UnidadActualizada, IncidenteActualizado)
+    B->>P: UnidadActualizada, IncidenteActualizado
+    P->>N: actualizar unidad e incidente
+  end
+  B-->>UI: Registro de eventos pide redibujar

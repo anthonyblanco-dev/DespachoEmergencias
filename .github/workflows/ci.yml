@@ -27,7 +27,7 @@ jobs:
         run: |
           mvn -B -ntp -q dependency:build-classpath -Dmdep.outputFile=cp.txt
           CP="target/classes:$(cat cp.txt)"
-          for prueba in PruebaGrafo PruebaTablaHash PruebaArbolBMas PruebaArbolRojoNegro PruebaDespacho; do
+          for prueba in PruebaGrafo PruebaTablaHash PruebaArbolBMas PruebaArbolRojoNegro PruebaDespacho PruebaBus PruebaPersistencia; do
             echo "=== $prueba ==="
             java -cp "$CP" "com.cenfotec.despacho.pruebas.$prueba"
           done

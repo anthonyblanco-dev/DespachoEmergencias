@@ -1,0 +1,94 @@
+classDiagram
+  direction LR
+  class ServicioDespacho {
+    +crearIncidente()
+    +reclasificar()
+    +despachar(id) ResultadoDespacho
+    +cerrarIncidente(id)
+    +recibirLlamada()
+    +atenderSiguienteLlamada()
+    +consultarHistorial(desde, hasta)
+    +setPublicador(Consumer)
+  }
+  class ArbolRojoNegro~T~ {
+    +insertar(T)
+    +eliminar(T)
+    +buscar(T)
+    +minimo() T
+    +esValido() boolean
+    +vista() NodoVista
+  }
+  class TablaHashDinamica~K,V~ {
+    +insertar(K,V)
+    +buscar(K) V
+    +eliminar(K) V
+    +factorCarga() double
+    -redimensionar()
+  }
+  class ArbolBMas~K,V~ {
+    +insertar(K,V)
+    +eliminar(K)
+    +buscar(K) V
+    +buscarRango(K,K) List
+    +esValido() boolean
+  }
+  class Grafo {
+    +agregarArista(a,b,peso)
+    +bfs(origen) List
+    +dfs(origen) List
+    +dijkstra(origen) ResultadoDijkstra
+  }
+  class ColaLlamadas {
+    +encolar(Llamada)
+    +desencolar() Llamada
+  }
+  class Incidente
+  class Unidad
+  class Llamada
+  class Interseccion
+  class BusMensajes {
+    +suscribir(nombre, manejador, tipos)
+    +publicar(Mensaje)
+    +esperarInactivo(ms) boolean
+    +cerrar()
+  }
+  class Mensaje {
+    <<sealed interface>>
+    +resumen() String
+  }
+  class Componente {
+    <<interface>>
+    +nombre() String
+    +iniciar(BusMensajes)
+    +estado() String
+  }
+  class ComponentePersistencia
+  class ComponenteDespachoAutomatico
+  class ComponenteRegistroEventos
+  class AlmacenNube {
+    <<interface>>
+    +listar()
+    +insertar()
+    +actualizar()
+    +eliminar()
+  }
+  class ClienteApi
+
+  ServicioDespacho *-- ArbolRojoNegro : activos
+  ServicioDespacho *-- TablaHashDinamica : índices
+  ServicioDespacho *-- ArbolBMas : historial
+  ServicioDespacho *-- Grafo : mapa
+  ServicioDespacho *-- ColaLlamadas
+  ServicioDespacho ..> Mensaje : publica
+  ServicioDespacho o-- Incidente
+  ServicioDespacho o-- Unidad
+  ColaLlamadas o-- Llamada
+  Grafo ..> Interseccion : vértices
+  BusMensajes ..> Mensaje : entrega
+  Componente <|.. ComponentePersistencia
+  Componente <|.. ComponenteDespachoAutomatico
+  Componente <|.. ComponenteRegistroEventos
+  ComponentePersistencia --> AlmacenNube
+  AlmacenNube <|.. ClienteApi
+  ComponenteDespachoAutomatico --> ServicioDespacho : despachar()
+  Componente ..> BusMensajes : se suscribe

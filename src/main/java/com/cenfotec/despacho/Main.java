@@ -1,6 +1,8 @@
 package com.cenfotec.despacho;
 
+import com.cenfotec.despacho.componentes.Componente;
 import com.cenfotec.despacho.estructuras.Grafo;
+import com.cenfotec.despacho.mensajeria.BusMensajes;
 import com.cenfotec.despacho.modelo.Incidente;
 import com.cenfotec.despacho.modelo.Unidad;
 import com.cenfotec.despacho.servicio.ServicioDespacho;
@@ -13,13 +15,14 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        ServicioDespacho servicio;
+        Arranque.Resultado sistema;
         try {
-            servicio = Arranque.iniciar().servicio();
+            sistema = Arranque.iniciar();
         } catch (IOException e) {
             System.out.println("No se pudieron cargar los datos: " + e.getMessage());
             return;
         }
+        ServicioDespacho servicio = sistema.servicio();
 
         Scanner sc = new Scanner(System.in);
         int opcion;
@@ -139,10 +142,34 @@ public class Main {
                     System.out.println("--- Tabla hash dinámica (índice de incidentes por ID) ---");
                     servicio.mostrarIndice();
                 }
-                case 0 -> System.out.println("Hasta luego.");
+                case 17 -> {
+                    System.out.println("--- Bus de mensajes (colas asincrónicas) ---");
+                    System.out.println("Mensajes publicados: " + sistema.bus().totalPublicados());
+                    for (BusMensajes.Estadistica e : sistema.bus().estadisticas()) {
+                        System.out.printf("%-22s recibidos %3d | procesados %3d | pendientes %3d | errores %d%n",
+                                e.nombre(), e.recibidos(), e.procesados(), e.pendientes(), e.errores());
+                    }
+                    for (Componente c : sistema.componentes()) {
+                        System.out.println(c.nombre() + ": " + c.estado());
+                    }
+                    if (!sistema.hayNube()) System.out.println("Sin nube: los cambios solo viven en memoria.");
+                }
+                case 18 -> {
+                    boolean nuevo = !sistema.despachoAutomatico().isActivo();
+                    sistema.despachoAutomatico().setActivo(nuevo);
+                    System.out.println("Despacho automático " + (nuevo ? "ACTIVADO" : "APAGADO")
+                            + (nuevo ? ": cada incidente nuevo recibirá su unidad sin intervención." : "."));
+                }
+                case 19 -> {
+                    System.out.println("--- Últimos eventos (más reciente primero) ---");
+                    sistema.registro().recientes().stream().limit(15).forEach(System.out::println);
+                }
+                case 0 -> System.out.println("Guardando cambios pendientes...");
                 default -> System.out.println("Opción no válida.");
             }
         } while (opcion != 0);
+        sistema.cerrar();
+        System.out.println("Hasta luego.");
     }
 
     private static void mostrarMenu() {
@@ -163,6 +190,9 @@ public class Main {
         System.out.println("14. Consultar historial entre dos fechas");
         System.out.println("15. Mostrar árbol B+ del historial");
         System.out.println("16. Mostrar tabla hash dinámica");
+        System.out.println("17. Estado del bus de mensajes y componentes");
+        System.out.println("18. Activar/apagar despacho automático");
+        System.out.println("19. Ver últimos eventos del sistema");
         System.out.println("0. Salir");
     }
 

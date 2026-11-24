@@ -1,0 +1,39 @@
+flowchart LR
+  subgraph Presentacion["Presentación"]
+    UI["Interfaz Swing<br/>(MainGrafico, ui/*)"]
+    CON["Consola<br/>(Main)"]
+  end
+
+  subgraph Nucleo["Núcleo"]
+    SRV["ServicioDespacho"]
+    RN["Árbol Rojo-Negro<br/>incidentes activos"]
+    HASH["Tabla hash dinámica<br/>índice por id y placa"]
+    BM["Árbol B+<br/>historial"]
+    GR["Grafo + Dijkstra<br/>mapa de la ciudad"]
+    COLA["Cola circular<br/>llamadas"]
+    SRV --- RN
+    SRV --- HASH
+    SRV --- BM
+    SRV --- GR
+    SRV --- COLA
+  end
+
+  BUS(["BusMensajes<br/>una cola y un hilo por suscriptor"])
+
+  subgraph Componentes["Componentes (solo conocen el bus)"]
+    PER["Persistencia"]
+    AUTO["Despacho automático"]
+    REG["Registro de eventos"]
+  end
+
+  NUBE[("Base de datos en la nube<br/>MongoDB vía API")]
+
+  UI --> SRV
+  CON --> SRV
+  SRV -- "publica eventos" --> BUS
+  BUS --> PER
+  BUS --> AUTO
+  BUS --> REG
+  PER --> NUBE
+  AUTO -- "despachar()" --> SRV
+  REG -- "avisa para redibujar" --> UI

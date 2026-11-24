@@ -97,6 +97,8 @@ public class PanelIncidentes extends JPanel implements Refrescable {
     public void refrescar() {
         // Qué unidad atiende cada incidente (para mostrarlo en ambas tablas)
         Map<String, Integer> incidentePorPlaca = new HashMap<>();
+        int filaSeleccionada = tablaIncidentes.getSelectedRow();
+        Integer idSeleccionado = filaSeleccionada < 0 ? null : (Integer) modeloIncidentes.getValueAt(filaSeleccionada, 0);
         modeloIncidentes.setRowCount(0);
         for (Incidente i : servicio.listarActivos()) {
             String placa = servicio.unidadAsignada(i.getId());
@@ -111,6 +113,7 @@ public class PanelIncidentes extends JPanel implements Refrescable {
                     id == null ? "-" : "#" + id});
         }
         llamadas.setText("Llamadas en cola: " + servicio.llamadasPendientes());
+        if (idSeleccionado != null) seleccionar(idSeleccionado);     // mantiene la selección al redibujar
     }
 
     // ---------- Acciones ----------

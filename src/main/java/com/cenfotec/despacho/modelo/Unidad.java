@@ -3,7 +3,7 @@ package com.cenfotec.despacho.modelo;
 public class Unidad {
     private String placa;
     private String tipo;            // AMBULANCIA, BOMBEROS, POLICIA
-    private String estado;          // DISPONIBLE, OCUPADA
+    private volatile String estado; // DISPONIBLE, OCUPADA (volatile: lo lee la interfaz desde otro hilo)
     private int idInterseccion;
 
     public Unidad(String placa, String tipo, String estado, int idInterseccion) {
@@ -18,6 +18,11 @@ public class Unidad {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public int getIdInterseccion() { return idInterseccion; }
+
+    /** Copia independiente para los mensajes del bus. */
+    public Unidad copia() {
+        return new Unidad(placa, tipo, estado, idInterseccion);
+    }
 
     @Override
     public String toString() {

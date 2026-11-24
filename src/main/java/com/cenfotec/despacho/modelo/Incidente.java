@@ -6,8 +6,9 @@ public class Incidente implements Comparable<Incidente> {
     private String descripcion;
     private int prioridad;          // 1 = crítica ... 5 = baja
     private String fechaHora;       // ISO: 2026-11-10T14:30:00
-    private String estado;          // ACTIVO, ASIGNADO, CERRADO
+    private volatile String estado; // ACTIVO, ASIGNADO, CERRADO (volatile: lo lee la interfaz desde otro hilo)
     private int idInterseccion;
+    private String placaAsignada;   // unidad que lo atiende (null si aún no tiene)
 
     public Incidente(int id, String tipo, String descripcion, int prioridad,
                      String fechaHora, String estado, int idInterseccion) {
@@ -29,6 +30,15 @@ public class Incidente implements Comparable<Incidente> {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
     public int getIdInterseccion() { return idInterseccion; }
+    public String getPlacaAsignada() { return placaAsignada; }
+    public void setPlacaAsignada(String placaAsignada) { this.placaAsignada = placaAsignada; }
+
+    /** Copia independiente; los mensajes del bus llevan copias para que nadie los modifique después. */
+    public Incidente copia() {
+        Incidente c = new Incidente(id, tipo, descripcion, prioridad, fechaHora, estado, idInterseccion);
+        c.placaAsignada = placaAsignada;
+        return c;
+    }
 
     @Override
     public int compareTo(Incidente otro) {

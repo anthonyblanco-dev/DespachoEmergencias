@@ -14,7 +14,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public class ClienteApi {
+public class ClienteApi implements AlmacenNube {
 
     private static final String URL = "https://paginas-web-cr.com/Api/apis/mongodb.php";
 
