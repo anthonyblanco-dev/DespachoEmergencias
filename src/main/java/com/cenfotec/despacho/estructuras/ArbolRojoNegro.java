@@ -53,6 +53,19 @@ public class ArbolRojoNegro<T extends Comparable<T>> {
 
     public int altura() { return altura(raiz); }
 
+    /** Copia de solo lectura de un nodo, para que la interfaz pueda dibujar el árbol. */
+    public record NodoVista<E>(E dato, boolean rojo, NodoVista<E> izq, NodoVista<E> der) { }
+
+    /** Raíz de la copia de solo lectura del árbol (null si está vacío). */
+    public NodoVista<T> vista() {
+        return copiar(raiz);
+    }
+
+    private NodoVista<T> copiar(Nodo n) {
+        if (n == NIL) return null;
+        return new NodoVista<>(n.dato, n.color == ROJO, copiar(n.izq), copiar(n.der));
+    }
+
     public void imprimirArbol() {
         if (raiz == NIL) {
             System.out.println("(árbol vacío)");

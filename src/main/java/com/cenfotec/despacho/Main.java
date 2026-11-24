@@ -1,50 +1,25 @@
 package com.cenfotec.despacho;
 
-import com.cenfotec.despacho.datos.CargadorArchivo;
+import com.cenfotec.despacho.estructuras.Grafo;
 import com.cenfotec.despacho.modelo.Incidente;
 import com.cenfotec.despacho.modelo.Unidad;
 import com.cenfotec.despacho.servicio.ServicioDespacho;
-import com.cenfotec.despacho.datos.CargadorNube;
-import com.cenfotec.despacho.datos.DatosIniciales;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
+/** Interfaz de consola. La interfaz gráfica arranca desde {@link MainGrafico}. */
 public class Main {
 
     public static void main(String[] args) {
-        ServicioDespacho servicio = new ServicioDespacho();
-
-        DatosIniciales datos = null;
-        String origen = "";
-
+        ServicioDespacho servicio;
         try {
-            CargadorNube nube = new CargadorNube();
-            int subidos = nube.sembrarSiVacio(CargadorArchivo.cargar("/datos_iniciales.json"));
-            if (subidos > 0) {
-                System.out.println("Se subieron " + subidos + " documentos iniciales a la nube.");
-            }
-            datos = nube.cargar();
-            origen = "la nube (MongoDB)";
-        } catch (Exception e) {
-            System.out.println("No se pudo usar la nube (" + e.getMessage() + "). Se usará el archivo local.");
+            servicio = Arranque.iniciar().servicio();
+        } catch (IOException e) {
+            System.out.println("No se pudieron cargar los datos: " + e.getMessage());
+            return;
         }
-
-        if (datos == null) {
-            try {
-                datos = CargadorArchivo.cargar("/datos_iniciales.json");
-                origen = "el archivo local";
-            } catch (IOException e) {
-                System.out.println("No se pudieron cargar los datos: " + e.getMessage());
-                return;
-            }
-        }
-
-        servicio.cargar(datos);
-        System.out.println("Datos iniciales cargados desde " + origen + ": "
-                + servicio.cantidadActivos() + " incidentes, "
-                + servicio.getUnidades().size() + " unidades, "
-                + servicio.llamadasPendientes() + " llamadas en cola.");
 
         Scanner sc = new Scanner(System.in);
         int opcion;
@@ -66,23 +41,25 @@ public class Main {
                     System.out.println(i == null ? "No se encontró el incidente." : "Encontrado: " + i);
                 }
                 case 4 -> {
-                    System.out.print("Tipo (ACCIDENTE, INCENDIO, MEDICA, ROBO...): ");
+                    System.out.print("Tipo (ACCIDENTE, INCENDIO, MEDICA, ROBO, RUIDO): ");
                     String tipo = sc.nextLine().trim().toUpperCase();
                     System.out.print("Descripción: ");
                     String desc = sc.nextLine().trim();
-                    int prioridad = leerEntero(sc, "Prioridad (1 crítica - 5 baja): ");
-                    Incidente nuevo = servicio.crearIncidente(tipo, desc, prioridad, 0);
+                    int prioridad = leerEnRango(sc, "Prioridad (1 crítica - 5 baja): ", 1, 5);
+                    int interseccion = leerInterseccion(sc, servicio, "Intersección del incidente: ");
+                    Incidente nuevo = servicio.crearIncidente(tipo, desc, prioridad, interseccion);
                     System.out.println("Registrado: " + nuevo);
                 }
                 case 5 -> {
                     int id = leerEntero(sc, "ID del incidente a reclasificar: ");
-                    int p = leerEntero(sc, "Nueva prioridad (1-5): ");
+                    int p = leerEnRango(sc, "Nueva prioridad (1-5): ", 1, 5);
                     System.out.println(servicio.reclasificar(id, p) ? "Reclasificado." : "No existe ese incidente.");
                 }
                 case 6 -> {
                     int id = leerEntero(sc, "ID del incidente a cerrar: ");
                     Incidente cerrado = servicio.cerrarIncidente(id);
-                    System.out.println(cerrado == null ? "No existe ese incidente." : "Cerrado: " + cerrado);
+                    System.out.println(cerrado == null ? "No existe ese incidente."
+                            : "Cerrado y enviado al historial: " + cerrado);
                 }
                 case 7 -> {
                     System.out.print("Teléfono: ");
@@ -95,10 +72,13 @@ public class Main {
                     if (servicio.llamadasPendientes() == 0) {
                         System.out.println("No hay llamadas pendientes.");
                     } else {
+                        System.out.println("Llamada a atender: " + servicio.verSiguienteLlamada());
                         System.out.print("Tipo de emergencia: ");
                         String tipo = sc.nextLine().trim().toUpperCase();
-                        int prioridad = leerEntero(sc, "Prioridad (1-5): ");
-                        System.out.println("Incidente creado: " + servicio.atenderSiguienteLlamada(tipo, prioridad));
+                        int prioridad = leerEnRango(sc, "Prioridad (1-5): ", 1, 5);
+                        int interseccion = leerInterseccion(sc, servicio, "Intersección del incidente: ");
+                        System.out.println("Incidente creado: "
+                                + servicio.atenderSiguienteLlamada(tipo, prioridad, interseccion));
                     }
                 }
                 case 9 -> {
@@ -111,6 +91,53 @@ public class Main {
                 case 10 -> {
                     System.out.println("--- Unidades ---");
                     for (Unidad u : servicio.getUnidades()) System.out.println(u);
+                }
+                case 11 -> {
+                    System.out.println("--- Mapa de la ciudad (vecino(tiempo en min)) ---");
+                    servicio.getMapa().imprimirListaAdyacencia();
+                }
+                case 12 -> {
+                    int desde = leerInterseccion(sc, servicio, "Intersección de origen: ");
+                    int hasta = leerInterseccion(sc, servicio, "Intersección de destino: ");
+                    Grafo.ResultadoDijkstra r = servicio.getMapa().dijkstra(desde);
+                    if (!r.alcanzable(hasta)) {
+                        System.out.println("No hay ruta entre esas intersecciones.");
+                    } else {
+                        System.out.println("Ruta: " + r.rutaA(hasta) + " | tiempo: " + r.distanciaA(hasta) + " min");
+                    }
+                }
+                case 13 -> {
+                    int id = leerEntero(sc, "ID del incidente a despachar: ");
+                    ServicioDespacho.ResultadoDespacho r = servicio.despachar(id);
+                    if (r.exito()) {
+                        System.out.println(r.mensaje() + " Ruta: " + r.ruta() + " | tiempo estimado: " + r.minutos() + " min");
+                    } else {
+                        System.out.println(r.mensaje());
+                    }
+                }
+                case 14 -> {
+                    System.out.print("Desde (2026-11-10 o 2026-11-10T08:30:00): ");
+                    String desde = sc.nextLine().trim();
+                    System.out.print("Hasta: ");
+                    String hasta = sc.nextLine().trim();
+                    try {
+                        List<Incidente> lista = servicio.consultarHistorial(desde, hasta);
+                        System.out.println("--- Historial entre fechas (" + lista.size() + ") ---");
+                        lista.forEach(System.out::println);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 15 -> {
+                    System.out.println("--- Árbol B+ del historial (orden " + servicio.ordenHistorial() + ") ---");
+                    servicio.mostrarHistorial();
+                    System.out.println("Cerrados: " + servicio.cantidadHistorial()
+                            + " | Altura: " + servicio.alturaHistorial()
+                            + " | Válido: " + servicio.historialValido());
+                }
+                case 16 -> {
+                    System.out.println("--- Tabla hash dinámica (índice de incidentes por ID) ---");
+                    servicio.mostrarIndice();
                 }
                 case 0 -> System.out.println("Hasta luego.");
                 default -> System.out.println("Opción no válida.");
@@ -125,11 +152,17 @@ public class Main {
         System.out.println("3. Buscar incidente por ID");
         System.out.println("4. Registrar incidente nuevo");
         System.out.println("5. Reclasificar prioridad");
-        System.out.println("6. Cerrar incidente (borrar)");
+        System.out.println("6. Cerrar incidente (pasa al historial)");
         System.out.println("7. Recibir llamada (encolar)");
         System.out.println("8. Atender siguiente llamada");
         System.out.println("9. Mostrar árbol Rojo-Negro");
         System.out.println("10. Ver unidades");
+        System.out.println("11. Ver mapa de la ciudad (lista de adyacencia)");
+        System.out.println("12. Ruta más corta entre dos intersecciones");
+        System.out.println("13. Despachar unidad a un incidente");
+        System.out.println("14. Consultar historial entre dos fechas");
+        System.out.println("15. Mostrar árbol B+ del historial");
+        System.out.println("16. Mostrar tabla hash dinámica");
         System.out.println("0. Salir");
     }
 
@@ -141,6 +174,23 @@ public class Main {
             } catch (NumberFormatException e) {
                 System.out.println("Escribe un número válido.");
             }
+        }
+    }
+
+    private static int leerEnRango(Scanner sc, String mensaje, int minimo, int maximo) {
+        while (true) {
+            int n = leerEntero(sc, mensaje);
+            if (n >= minimo && n <= maximo) return n;
+            System.out.println("Debe estar entre " + minimo + " y " + maximo + ".");
+        }
+    }
+
+    private static int leerInterseccion(Scanner sc, ServicioDespacho servicio, String mensaje) {
+        while (true) {
+            int id = leerEntero(sc, mensaje);
+            if (servicio.getMapa().contieneVertice(id)) return id;
+            System.out.println("Esa intersección no existe (usa un número del 1 al "
+                    + servicio.getMapa().cantidadVertices() + ").");
         }
     }
 }
